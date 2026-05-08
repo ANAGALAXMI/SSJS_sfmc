@@ -1,0 +1,66 @@
+%%[ 
+   if(RequestParameter("submit")=='submit') then
+set @fname=RequestParameter("fname")
+set @lname=RequestParameter("lname")
+set @email=RequestParameter("email")
+set @phone=RequestParameter("phone")
+set @pfs=RequestParameter("ema") 
+set @sms=RequestParameter("sms")
+set @wh=RequestParameter("wh")
+set @fn=""
+if(not empty(@pfs)) then 
+  set @fn=@pfs
+endif
+if(not empty(@sms)) then
+set @fn=iif(empty(@fn),@sms,concat(@fn,",",@sms))
+endif
+if(not empty(@wh)) then
+set @fn=iif(empty(@fn),@wh,concat(@fn,",",@wh))
+endif
+
+
+
+UpsertData("Customer_Preference_Center",1,"EmailAddress",@email,"FirstName",@fname,"LastName",@lname,"MobileNumber",@phone,"PreferredChannel",@fn)
+
+endif
+
+]%%
+
+
+
+
+
+<title> Form
+  </title> 
+ %%[if(RequestParameter("submit")=='submit') then ]%%
+  <h2>Thank you! Your preferences have been updated.</h2> <p>You can now safely close this window.</p> %%[
+ else]%%
+  <form action="%%=RequestParameter('PAGEURL')=%%" method="post"> 
+    <label> FirstName</label> <br> 
+    <input type="text" name="fname" id="fn" required=""> <br> <br>
+    <label> LastName</label> <br> 
+    <input type="text" name="lname" id="ln"><br> <br> 
+    <label> Email</label> <br> 
+    <input type="email" name="email" id="em" required=""><br> <br> 
+    <label> Phone</label> <br> 
+    <input type="tel" name="phone" id="ph" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" title="Format: 123-456-7890"><br> <br>
+    <label>Prefered Channel:</label><br>
+   <input type="checkbox" id="email" name="ema" value="Email"> 
+    <label> Email</label><br>  <input type="checkbox" id="sms" name="sms" value="SMS"> 
+     <label> SMS</label> <br> <input type="checkbox" id="Whatsapp" name="wh" value="Whatsapp"> 
+     <label> Whatsapp</label> <br><br>
+    <input type="submit" name="submit" value="submit">  
+   %%[endif]%%
+  </form>
+  <script>
+   var sms=document.getElementById("sms");
+   var wht=document.getElementById("Whatsapp");
+    var phone=document.getElementById("ph");
+   
+     function tg(){
+         phone.required=sms.checked || wht.checked;
+    } 
+   wht.addEventListener('change',tg);
+   sms.addEventListener('change',tg);
+   tg();
+</script>
