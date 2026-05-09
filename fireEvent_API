@@ -1,0 +1,39 @@
+<script runat="server">
+ Platform.Load('core',1);
+ var authpayload={
+ "grant_type": "client_credentials",
+    "client_id": "client_id",
+    "client_secret": "client_secret" 
+ };
+  var restUrl="rest.marketingcloudapis.com/interaction/v1/events"
+  var authUrl = "auth.marketingcloudapis.com/v2/token";
+  var contentType = 'application/json';
+  var result = HTTP.Post(authUrl, contentType,Stringify(authpayload));
+ var response= Platform.Function.ParseJSON(result.Response[0])
+ var acc_token=['Bearer '+ response.access_token];
+ 
+ if(result.StatusCode==200)
+ {
+ Write("connection buit successfully "+acc_token)
+ } 
+  else {
+   Write("connection failed" +result.StatusCode)
+  } 
+var body= {
+    "ContactKey": "DD304",
+    "EventDefinitionKey": "API_EventKey",
+    "Data": {
+        "SubscriberKey": "DD304",
+        "EmailID": "cates@salesforce.com",
+        "Other": "Entered 2"
+    } }
+ var header=['Authorization']
+ var result2 = HTTP.Post(restUrl, contentType,Platform.Function.Stringify(body),header,acc_token);
+  if(result2.StatusCode==200){
+  Write("Event Triggered")
+  }
+  else{
+  Write("failed")
+  } 
+
+</script>
