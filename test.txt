@@ -1,0 +1,9 @@
+git status
+
+git add <fileName>
+
+git status
+
+git commit -m "sample commit"
+
+git push
