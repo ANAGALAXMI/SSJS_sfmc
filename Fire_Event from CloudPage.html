@@ -1,0 +1,78 @@
+<script runat="server">
+Platform.Load('core','1.1.1');
+  if(Platform.Request.Method() == 'POST'){ 
+var name  = Platform.Request.GetFormField('fn');
+var email = Platform.Request.GetFormField('email');
+var phone = Platform.Request.GetFormField('phn');
+        if (!phone) { phone = "" ; }
+var Auth={
+ "grant_type":"client_credentials",
+    "client_id":"client_id", 
+    "client_secret":"client_secret"  
+};
+var url='https://mc4by0xw84s11pznjgq1c45n7qr0.auth.marketingcloudapis.com/v2/token';
+var result=HTTP.Post(url,'application/json',Stringify(Auth));
+var token='Bearer '+ Platform.Function.ParseJSON(result.Response[0]).access_token;
+var header=['Authorization'];
+var restUrl= 'https://mc4by0xw84s11pznjgq1c45n7qr0.rest.marketingcloudapis.com/interaction/v1/events';
+
+if(result.StatusCode==200){
+    var body=
+    {
+    "ContactKey": "8078ef86-bed0-4437-8236-78998eb72d99",
+    "EventDefinitionKey": "APIEvent-4d47c066-4b95-c366-0f58-a0c5e50c6268",
+    "Data": {
+        "SubscriberKey": email,
+        "FirstName": name,
+        "EmailAddress": email
+    }
+}
+ var res2=HTTP.Post(restUrl,'application/json',
+ Stringify(body),header,[token])    
+  }
+  else
+    Write('Error');
+  
+ }
+  
+</script> 
+<script>
+function tg() {
+    var sms = document.getElementById('sms');
+    var wh  = document.getElementById('wh');
+    var phn = document.getElementById('ph');
+    
+    if (sms.checked || wh.checked) {
+        phn.style.display = 'block';
+        phn.disabled = false;
+    } else {
+        phn.style.display = 'none';
+        phn.disabled = true;
+    }
+} 
+</script>
+
+<title>Register Page</title>
+  %%[if(RequestParameter('submit')=='submit') then]%%
+<h3>
+   Thankyou For submiting Form
+</h3>
+%%[else]%%
+<form method="post">
+    <label> Email </label><br>
+    <input type="email" name="email" required="" id="email"><br><br>
+    
+    <label> FullName </label><br>
+    <input type="text" name="fn" id="fn"><br><br>
+    
+    <label> Phone </label><br>
+    <input type="text" name="phn" disabled="" id="ph" style="display:none;"><br><br>
+    
+    <label> Preferred Channel: </label><br>
+    <input type="checkbox" name="em" id="em"> <label>Email</label><br>
+    <input type="checkbox" onchange="tg()" name="sms" id="sms"> <label>SMS</label><br>
+    <input type="checkbox" onchange="tg()" name="wh" id="wh"> <label>Whatsapp</label><br><br>
+    
+    <input type="submit" name="submit" value="submit"> 
+</form>
+%%[endif]%% 
