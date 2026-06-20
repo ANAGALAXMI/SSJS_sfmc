@@ -1,0 +1,21 @@
+<script runat='server'> 
+var auth="https://"+"subdomain"+"auth.marketingcloud/v2/token/"
+var contentType='application/json'
+var payload={
+     "grant_type":"client_credentials",
+     "client_id":"id",
+     "client_secrete":"cs"
+}
+var response=HTTP.Post(auth,contentType,Stringify(payload))
+try{
+if(response.StatusCode==200){
+var result=Platform.Function.ParseJSON(response.Response+"")
+var token=result.access_token;
+Write(token);
+}}
+catch(e){
+    Write("Authentication failed "+e)
+}
+
+
+</script>
