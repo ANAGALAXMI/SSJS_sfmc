@@ -1,0 +1,15 @@
+<script runat="server">
+var auth_url="https://subdomain.auth.marketingcloudapis.com/"+"v2/token";
+var rest="https://subdomain.rest.marketingcloudapis.com/"
+var content_type="application/json"
+var payload={
+"grant_type": "client_credentials",
+"client_id":"id",
+"client_secret":"secret"
+};
+var response=
+HTTP.Post(auth_url,"application/json",Stringify(payload))
+var AT= Platform.Function.ParseJSON(response.Response+"")
+var token=AT.access_token;
+var header="Bareer "+token;
+</script>
