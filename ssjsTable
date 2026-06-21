@@ -1,0 +1,38 @@
+<script runat="server">
+Platform.Load("core", "1.1.1");
+var json={
+  "Flights":[ {
+    "Origin" :"IND",
+    "Dest":"NYC",
+    "Price":100.0
+  },
+    {
+    "Origin" :"IND",
+    "Dest":"LAX",
+    "Price":200.0
+  },
+    {
+    "Origin" :"IND",
+    "Dest":"SEA",
+    "Price":500.0,
+     "PerBagCharge":25
+  }]};
+ var airports={"IND":"Indianpolis","NYC":"New York","LAX":"Los Angles","SEA":"Seattle"};
+  function country(code){
+  var name=airports[code]
+  return name
+  };
+Write("<table border=1> <tr><th>Origin</th><th>Dest</th><th>Price</th><th>PerBagCharge</th></tr>")
+for(var i=0;i<json.Flights.length;i++){
+    Write("<tr>")
+
+Write("<td>"+country(json.Flights[i].Origin) +"</td>")
+Write("<td>"+country(json.Flights[i].Dest)+"</td>")
+Write("<td>"+json.Flights[i].Price +"</td>")
+Write("<td>" + ((json.Flights[i].PerBagCharge == undefined) ? "" : json.Flights[i].PerBagCharge) + "</td>");
+
+
+  Write("</tr>")
+}
+ Write("</table>") 
+</script>
