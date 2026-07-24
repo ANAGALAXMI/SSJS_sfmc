@@ -1,0 +1,106 @@
+# SFMC QA → Dev: 2 End-to-End Projects (1 Week)
+
+Goal: build two portfolio projects that touch every core SFMC dev skill —
+**Data Extensions, AMPscript, SSJS, SQL Query Activities, Automation Studio,
+Journey Builder, Email Studio, CloudPages** — so you walk into the new role
+having already shipped something end-to-end, not just tested it.
+
+Both projects can be built in a **free SFMC trial/dev org** (or your
+company's sandbox if you have BU access). Do Project 1 in days 1–4,
+Project 2 in days 5–7 (lighter, since it reuses patterns from Project 1).
+
+---
+
+## Project 1 — E-Commerce Welcome + Abandoned Cart Program
+
+### What it demonstrates
+Full lifecycle: capture → segment → automate → journey → personalized email → self-service CloudPage.
+
+### Data model
+| DE Name | Key Fields |
+|---|---|
+| `Subscribers` | SubscriberKey, Email, FirstName, SignupDate, Status |
+| `Products` | ProductID, ProductName, Price, ImageURL, Category |
+| `CartActivity` | SubscriberKey, ProductID, DateAdded, Purchased (Y/N) |
+| `PurchaseHistory` | SubscriberKey, OrderID, ProductID, OrderDate, Amount |
+
+### Day-by-day
+
+**Day 1 — Data + CloudPage signup form**
+- Create the 4 Data Extensions above (with relationships where useful).
+- Build a **CloudPage** signup/preference form using AMPscript:
+  - Capture Name/Email/Category preference on submit.
+  - Use `InsertDE()` or SSJS `Platform.Function.InsertData` to write to `Subscribers`.
+  - Show a personalized confirmation message using query string params.
+- Import 50–100 dummy rows into `Products` and `CartActivity` via a CSV upload to FTP/Data Extension (manually or via Automation import).
+
+**Day 2 — Automation Studio**
+- Build an automation:
+  1. **File Drop / Import Activity** — import a CSV of new cart activity into `CartActivity`.
+  2. **SQL Query Activity** — segment "abandoned carts" (added >24h ago, `Purchased = 'N'`) into an `AbandonedCart_Filtered` DE.
+  3. **SQL Query Activity** — build `NewSignups_Last24Hrs` for the welcome journey entry.
+  4. **Script Activity (SSJS)** — optional: log run stats or do a calculation Query Activities can't (e.g., string formatting).
+- Schedule it (e.g., hourly) — this is the "automation" piece interviewers/managers love to see.
+
+**Day 3 — Journey Builder**
+- **Journey A: Welcome Series** — Entry source = `NewSignups_Last24Hrs` DE (or API Event). 3 emails with wait steps (immediate, +1 day, +3 days), a Decision Split on engagement (opened email 1?), exit criteria.
+- **Journey B: Abandoned Cart** — Entry source = `AbandonedCart_Filtered` DE. Decision Split: "Purchased since entry?" (re-query via Contact Data/Update Contact Data activity) → if yes, exit; if no, send reminder email → wait 2 days → send discount email.
+
+**Day 4 — Email Studio (the AMPscript-heavy day)**
+- Build responsive templates with dynamic content:
+  - Welcome email: personalize with `%%FirstName%%`, conditional content block (`%%[IF %%Category%% == "Electronics" THEN]%%`).
+  - Cart reminder email: **AMPscript loop** (`FOR`/`NEXT`) pulling product rows from `CartActivity`/`Products` via `LookupOrderedRows` to render up to 3 abandoned items with image, name, price.
+  - Add a dynamic "You might also like" block using a second lookup.
+- Test with Guided Send / test data extension, check rendering via Preview & Test.
+
+**Stretch (if time permits):** Add a Subscription Center CloudPage using AMPscript to read/update `Status` in `Subscribers`, and wire it into the email footer.
+
+---
+
+## Project 2 — Loyalty / Re-Engagement Program
+
+### What it demonstrates
+Score-based segmentation, scheduled scoring automation, a lookup-driven self-service CloudPage, and a re-engagement journey — reinforces the same stack with different logic so it doesn't look like a copy-paste of Project 1.
+
+### Data model
+| DE Name | Key Fields |
+|---|---|
+| `LoyaltyPoints` | SubscriberKey, PointsBalance, Tier (Bronze/Silver/Gold), LastActivityDate |
+| `EngagementScore` | SubscriberKey, Opens30d, Clicks30d, Score, LastCalculated |
+
+### Day-by-day
+
+**Day 5 — CloudPage + scoring automation**
+- **CloudPage:** "My Loyalty Dashboard" — pass `SubscriberKey` via query string (from an email link), use AMPscript `Lookup()`/SSJS `Platform.Function.Lookup` to pull `PointsBalance` and `Tier`, render a progress bar to next tier (pure HTML/CSS + AMPscript, no framework needed).
+- **Automation Studio:**
+  1. SQL Query Activity — calculate `Opens30d`/`Clicks30d` from Tracking/Open/Click Data Views (`_Open`, `_Click`, `_Subscribers`) into `EngagementScore`.
+  2. SQL Query Activity — derive `Score` and update `Tier` in `LoyaltyPoints` based on thresholds.
+  3. Schedule daily.
+
+**Day 6 — Journey Builder**
+- **Re-Engagement Journey:** Entry = `EngagementScore` DE, filtered to `Score < threshold`. Decision Split by Tier → different win-back email per tier (Gold gets a bigger incentive). Add a wait/re-check step, then exit or escalate (e.g., SMS/push if you want to show multi-channel awareness, even if just described in your notes).
+- **Birthday/Anniversary Journey (quick add):** Entry Source = Date-based (SignupDate + 1 year), single personalized email — cheap to build, shows you know date-triggered entry sources.
+
+**Day 7 — Polish + documentation**
+- Write a 1-page README per project: architecture diagram (DEs → Automation → Journey → Email/CloudPage), what each AMPscript/SSJS block does, and what you'd improve with more time (e.g., error handling, Contact Builder / Contact Model instead of list-based sends, unit tests for SQL activities).
+- This README is what you show in your first week standup — it signals dev thinking, not just "I built stuff."
+
+---
+
+## Skills checklist (map to your new role)
+
+- [x] Data Extensions (relational design, keys)
+- [x] AMPscript (variables, conditionals, loops, lookups)
+- [x] SSJS (Platform.Function calls, form processing)
+- [x] SQL Query Activities (segmentation, joins, Data Views)
+- [x] Automation Studio (import, query, script activities, scheduling)
+- [x] Journey Builder (entry sources, decision splits, wait steps, exit criteria)
+- [x] Email Studio (dynamic content, personalization, testing)
+- [x] CloudPages (form capture + self-service lookup pages)
+
+## Tip for your first week
+Since you're coming from QA, lean into that as a strength rather than hiding
+it: mention you built these with testability in mind (sample/edge-case data
+in each DE, a way to verify each automation step, previewed emails against
+multiple test profiles). That's a genuinely useful angle a pure-dev hire
+often skips.
